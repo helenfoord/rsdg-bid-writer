@@ -528,11 +528,16 @@ Story or fact to feature prominently, if any: ${form.keyStory || '(none given)'}
         messages: [{ role: 'user', content }],
       }),
     });
+    const raw = await response.text();
     let data;
     try {
-      data = await response.json();
+      data = JSON.parse(raw);
     } catch (e) {
-      throw new Error(`Server returned something that wasn't JSON (HTTP ${response.status}). Likely the /api/draft function itself is failing before it reaches Claude.`);
+      throw new Error(
+        `Server returned something that wasn't JSON (HTTP ${response.status}). Actual response, first 400 characters: ${
+          raw ? raw.slice(0, 400) : '(completely empty response body)'
+        }`
+      );
     }
     if (!response.ok || data.type === 'error') {
       const detail =
@@ -1380,6 +1385,7 @@ function mergeWithSeed(stored) {
 function PipelineTracker() {
   const [funders, setFunders] = useState(null); // null = still loading
   const [loadError, setLoadError] = useState(false);
+  const [loadErrorDetail, setLoadErrorDetail] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [newFunder, setNewFunder] = useState({ name: '', appliesTo: '', amount: '', deadline: '', status: 'Not started', notes: '', url: '' });
   const [expandedId, setExpandedId] = useState(null);
@@ -1393,7 +1399,10 @@ function PipelineTracker() {
 
   async function pipelineGet() {
     const res = await fetch('/api/pipeline');
-    if (!res.ok) throw new Error('Pipeline load failed');
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Pipeline load failed (HTTP ${res.status}): ${body.slice(0, 300) || 'no detail returned'}`);
+    }
     const data = await res.json();
     return data && data.value ? JSON.parse(data.value) : null;
   }
@@ -1404,7 +1413,10 @@ function PipelineTracker() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: JSON.stringify(value) }),
     });
-    if (!res.ok) throw new Error('Pipeline save failed');
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Pipeline save failed (HTTP ${res.status}): ${body.slice(0, 300) || 'no detail returned'}`);
+    }
   }
 
   useEffect(() => {
@@ -1424,11 +1436,14 @@ function PipelineTracker() {
         }
       } catch (err) {
         // Key doesn't exist yet, or storage failed — seed locally and try to save
+        console.error(err);
         const seeded = seedFunders();
         setFunders(seeded);
         try {
           await pipelineSet(seeded);
         } catch (e2) {
+          console.error(e2);
+          setLoadErrorDetail(e2 && e2.message ? e2.message : String(e2));
           setLoadError(true);
         }
       }
@@ -1440,6 +1455,8 @@ function PipelineTracker() {
     try {
       await pipelineSet(updated);
     } catch (err) {
+      console.error(err);
+      setLoadErrorDetail(err && err.message ? err.message : String(err));
       setLoadError(true);
     }
   }
@@ -1630,7 +1647,7 @@ function PipelineTracker() {
         {loadError && (
           <div style={{ display: 'flex', gap: 8, color: '#b42318', fontSize: 13, marginBottom: 16 }}>
             <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
-            Changes aren't saving right now. They'll hold for this session but may not persist, worth refreshing and checking.
+            Changes aren't saving right now: <code style={{ fontFamily: 'monospace', fontSize: 12 }}>{loadErrorDetail || 'no detail available'}</code>. They'll hold for this session but won't persist.
           </div>
         )}
 
