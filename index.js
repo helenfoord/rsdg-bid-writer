@@ -1,5 +1,6 @@
 // Cloudflare Worker entry point — single-file version.
 //
+// redeploy
 // Everything lives in this one script: the page itself (embedded below as a
 // string, to avoid relying on folder structure surviving a GitHub upload),
 // plus the two API routes.
