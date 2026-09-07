@@ -1,0 +1,11 @@
+{
+  "name": "rsdg-bid-writer",
+  "main": "index.js",
+  "compatibility_date": "2026-09-07",
+  "kv_namespaces": [
+    {
+      "binding": "PIPELINE_KV",
+      "id": "41f765cc2f7047b1b90eb7739c257a20"
+    }
+  ]
+}
