@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSDG Bid Builder</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.12.2/mammoth.browser.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #eef4f8; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect, Fragment } = React;
+
+function Icon({ children, size = 16, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+      {children}
+    </svg>
+  );
+}
+const Upload = (p) => <Icon {...p}><path d="M12 3v12" /><path d="M7 8l5-5 5 5" /><path d="M4 21h16" /></Icon>;
+const X = (p) => <Icon {...p}><path d="M18 6 6 18" /><path d="M6 6l12 12" /></Icon>;
+const Loader2 = (p) => <Icon {...p}><path d="M21 12a9 9 0 1 1-6.219-8.56" /></Icon>;
+const Copy = (p) => <Icon {...p}><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></Icon>;
+const Check = (p) => <Icon {...p}><path d="M20 6 9 17l-5-5" /></Icon>;
+const Download = (p) => <Icon {...p}><path d="M12 3v12" /><path d="M7 12l5 5 5-5" /><path d="M4 21h16" /></Icon>;
+const AlertCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="10" /><path d="M12 8v4" /><path d="M12 16h.01" /></Icon>;
+const ChevronRight = (p) => <Icon {...p}><path d="M9 18l6-6-6-6" /></Icon>;
+const ExternalLink = (p) => <Icon {...p}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><path d="M15 3h6v6" /><path d="M10 14 21 3" /></Icon>;
+
+const COLORS = {
+  blue: '#005a91',
+  blueDark: '#00456f',
+  orange: '#fd7504',
+  green: '#20ab21',
+  yellow: '#fed200',
+  white: '#fefefe',
+  ink: '#0f2a3d',
+};
+
+const RSDG_KNOWLEDGE_BASE = `
+RSDG KNOWLEDGE BASE (verified facts, compiled from the Business Plan 2026-2031 v5,
+Supporting Information document, redrafted CAT Form C, board biographies, and the
+fundraising and marketing strategies)
+
+WHO RSDG IS
+Rothes Sports Development Group (RSDG), Scottish Charitable Incorporated Organisation,
+charity number SC054211, established January 2025. Two-tier SCIO (board of trustees
+plus wider membership). Charitable purposes: advancement of public participation in
+sport, and provision of recreational facilities to improve conditions of life. Vision:
+Rothes will be a healthy and happy place where people want to stay, work and have their
+leisure time. Mission: an inclusive, year-round community sports campus bringing
+together modern facilities and activity for all ages. Over 300 community members;
+Facebook group of 310 members.
+
+THE PROJECT
+Community ownership (via Community Asset Transfer) of Rothes Recreation Park, Common
+Good land owned by Moray Council, followed by a covered, year-round multi-sport
+facility on the derelict former bowling green. Three named stages: Project 0
+(~2 years, in parallel with the Community Asset Transfer/Common Good process: surveys,
+planning, design, legal, funding pipeline; cost £151,860-£175,360); Project 1 (12-month
+build year, 6 months construction then 6 months handover/snagging/soft launch; total
+cost £1,550,251 + VAT); Project 2 (operation from opening; trading income covers all
+costs by Year 3, cumulative surplus ~£164,000 by end of Year 3). Total capital
+requirement £1.74M-£1.76M + VAT.
+
+Site: grid reference NJ279495, three land areas per Rydens valuation (23 May 2025):
+Area 1 former bowling green (0.879 acre), Area 2 Recreation Park excluding play park
+(2.384 acres), Area 3 adjacent land (1.347 acres). Aggregate valuation £35,000.
+Requesting all three areas at nil consideration under s79(2)(a) Community Empowerment
+(Scotland) Act 2015.
+
+What gets built: 2 padel courts (20m x 10m, toughened glass enclosure), 2 pickleball
+courts, synthetic turf MUGA (31m x 22m, suitable for bowls/tennis/hockey/cricket),
+basketball court, double barrel vault canopy over all court areas, new pavilion (two
+changing rooms, a Changing Places Toilet, club room/social space, plant room, storage),
+new power supply (£25k allowance), EV charging + CCTV (£10k allowance). Built as a
+single programme (phasing was considered and rejected: groundworks/foundations must be
+built to full spec regardless, and the canopy is not optional, it's what makes
+year-round use work in Moray's weather). Existing football pavilion stays; the poor-
+condition bowling pavilion is replaced.
+
+EVIDENCE OF NEED
+Feasibility study by Community Enterprise (COSS-supported), autumn 2025, mixed methods:
+community survey (191 responses; 84% local residents, 68% from Rothes; 69% aged
+25-64), stakeholder interviews (9 organisations), school engagement (30 pupils, Rothes
+Primary), community drop-ins (~30 people, Aberlour/Archiestown/Craigellachie/Rothes),
+board workshops, market analysis, board skills audit, technical survey review.
+Headline results: 96% support a MUGA; 78% believe it will help people be more active;
+77% would use it (69% at least monthly); 85% already use Recreation Park (70% at least
+monthly; 65% walking, 25% football); 37% believe it will help the local economy.
+Sport interest: padel 58%, pickleball 48%, basketball 43%, badminton 41%. 51% supported
+replacing the grass pitch with astroturf, which was parked (not pursued) partly on that
+basis and to preserve green space. An earlier draft referenced 86 survey responses;
+the finalised, authoritative figure is 191 - always use 191, never 86.
+Market: astroturf/all-weather pitches regionally oversubscribed, nearest comparable
+covered provision over an hour away. Comparable community facilities (Methlick,
+Aviemore, Strathdearn) sustain 25-35% occupancy; RSDG's own Year 1 assumptions start at
+5-17.5%, deliberately conservative. Confirmed anchor users: Rothes Bowling Club, Rothes
+FC, Rothes Rovers, Aberlour Villa, Dufftown FC, Rothes Primary School, Speyside High
+School.
+Strategic fit: SportScotland "Sport for Life"; Moray Council physical activity
+framework; Scottish Government Community Wealth Building; Town Centre Regeneration;
+NPF4 20-minute neighbourhoods; Scottish Government Climate Change Plan; Scottish Land
+Fund outcomes.
+
+GOVERNANCE AND BOARD
+Restructured at the 2026 AGM after a skills audit; further trustees (incl. one with
+dedicated digital/IT skills) due at the June 2026 AGM.
+- Richard Forsyth, Chairman: born/raised Rothes, Chairman/MD of Forsyths ~40 years,
+  Honorary President of Rothes FC.
+- Peter Scott, Vice Chair: born/raised Rothes (family ties 6 generations), Rothes
+  Tennis Club member since early 1980s.
+- Hamish McBain, Secretary: lived in Rothes all his life, 25 years at Glenrothes
+  Distillery, Secretary of Rothes Tennis Club/Highlands Tennis/Moray Tennis Forum.
+- Maureen Turner, Treasurer: grew up in Rothes (34 years), Rothes Tennis Club trustee,
+  ex-Treasurer Dufftown FC Under-12s, President of the Scottish Association of Painting
+  Craft Teachers.
+- Leigh Anderson: grew up in and raised children in Rothes, years on Rothes Tennis
+  Club committee, ran Rothes Golf Club junior section for a decade.
+- Neal Anderson: born in Rothes, deep family roots, 10 years as Junior Convenor at
+  Rothes Golf Club.
+- Helen Foord: lives in Rothes, runs two digitally-powered marketing agencies (legal
+  sector, UK/international), board member of UHI Moray, registered B Leader (B Corp
+  impact assessment support).
+- Ian Blackhall: trustee, biography not yet provided.
+Board skills audit (11 areas): strong in project planning, communications, working
+with people, financial management, governance, leadership, facility management. Gaps:
+marketing, digital/ICT, business planning, impact evaluation - all four addressed by
+Helen Foord's appointment (the board still wants a dedicated digital/IT trustee too).
+Professional advisors: Community Enterprise (feasibility/business plan); COSS (CAT
+advisory); Mac Consulting Landscapes, led by Malcolm Clapperton (site design, cost
+estimate, RIBA Stage 2-6, 20 years' sports design experience incl. Craiglockhart
+Tennis Centre, Great Western Golf padel, Hillhead Sports Club, Kinnoull Tennis Club,
+Skipton Tennis Centre, SportScotland Inverclyde, The Grange Club, The Meadows); Hardies
+LLP (building condition surveys); Rydens (land valuation); solicitors (CAT/Common Good
+legal process).
+
+RELATIONSHIP WITH OTHER ROTHES SPORTS BODIES
+Campus model links four sites: Recreation Park (this project), Mackessack Park
+(Rothes FC, independently developing a full-size synthetic pitch to Scottish FA
+standards; SFA correspondence confirmed October 2025), Rothes Primary/Speyside High
+School, Rothes Tennis Club (own Council lease, adjacent, unaffected by this request).
+
+FINANCE AND FUNDING
+Capital portfolio (~£580k-£1.04M identified against £1.55M+£35k required; MOST OF THIS
+IS NOT SECURED, it is "application planned" or "in discussion" unless stated
+otherwise): Scottish Land Fund £35,000 (land, application mid-2026); Rothes Wind Farm
+£200,000+ across Project 0 and 1 (to be discussed); SportScotland £100,000 (application
+planned); SSEN Community Benefit Funding £40,000-£500,000 (application planned);
+Garfield Weston Foundation £30,000 (application planned); Peter Harrison Foundation
+£30,000 (application planned); Forsyth Foundation capital tranche £30,000 (relationship
+established); Scottish Landfill Communities £25,000 (application planned); Weir
+Charitable Trust £25,000 (application planned); local capital fundraising £25,000
+(ongoing); Barclays Community Sport £20,000 (application planned); CARES £20,000
+(application planned); HIE TBC (in discussion).
+Operating funding for Project 0 (~£152k-£176k over 2 years): Rothes Wind Farm £40,000;
+Robertson Trust £25,000; Foundation Scotland £15,000; Forsyth Foundation £10,000
+(committed in principle); William Grant Foundation £6,000; ScottishPower Foundation
+£5,000; local fundraising £15,000; DO-secured pipeline £5,000. £58,000 was RSDG's
+actual cash reserve at the start of Project 0 (secured/confirmed, not a grant).
+Year 1 operating fundraising target during Project 1 (£140,000): Foundation Scotland
+£25,000; Robertson Trust £25,000; William Grant Foundation £15,000; local campaign
+£15,000; Forsyth Foundation £10,000; ScottishPower Foundation £10,000; DO-secured
+pipeline £40,000. This is separate from and additional to the £40,000 Sports
+Development Officer grant and £40,000 revenue start-up grant landing within Year 1.
+Fundraising approach: tiered (1-2 lead grants at 15-20% of capital total, 2-4 grants
+at 5-10%, then smaller grants and community appeals). The board will not proceed to
+construction until the funding pipeline is sufficient.
+Corporate targets: local distilleries with community investment programmes (Glen
+Grant, Macallan, Cardhu, Craigellachie, Aberlour); Forsyth's (committed in principle);
+construction supply chain; regional businesses via Moray Chamber of Commerce.
+Community fundraising precedent: Whisky for Rothes charity auction via Just Whisky,
+raised over £33,000; a proposed Inverness-to-Edinburgh charity cycle ride (concept
+stage); planned launch appeal, sponsored events, ceilidhs/quiz nights, individual
+giving to the 300+ membership, project-based crowdfunding for named elements.
+Three-year operating summary: Year 1 trading income £109,890, total income £189,890,
+overheads £134,982, surplus £54,908. Year 2 trading £129,350, total £184,350, overheads
+£140,016, surplus £44,334. Year 3 trading £168,991, total £208,991, overheads £144,671,
+surplus £64,320. By Year 3, trading income alone covers all operating costs bar the
+ongoing Sports Development Officer grant. Sensitivity: Year 1 absorbs ~50% trading
+drop, Year 2 ~34%, Year 3 ~38%, and still breaks even.
+Pricing: grass pitch and park stay free and open to all. MUGA/pavilion: members
+£15/hour, pay-as-you-play £20/hour, concessions for juniors/over-60s/disabled
+people/low-income households, schools free at agreed times. Membership 100 (Y1) to
+200 (Y3) at £50/year.
+VAT/water/tax: all costs quoted ex-VAT; RSDG will register early so VAT on
+construction (~£298,000) and eligible operating costs is reclaimable. Full exemption
+from Scottish Water charges as a charity using premises wholly for charitable
+purposes. Primary purpose trading allowable without corporation tax under OSCR
+guidance.
+Loan contingency: LTA Quick Access Loan Scheme, up to £250,000 interest-free for padel
+facilities. RSDG qualifies. Held as contingency only; no loan servicing costs modelled.
+
+STAFFING (Project 2)
+Facilities Manager £38,000 (1.0 FTE); Sports Programme Lead £32,000 (1.0 FTE,
+grant-funded only, exists only if externally funded); Admin/Finance £28,000 pro rata
+(0.3 FTE); Caretaker/Groundskeeper £26,200 pro rata (0.3 FTE, expands from the TUPE-
+transferring Council groundskeeper role). Development Officer (Project 0 plus first
+6 months of Project 1): part-time, £1,750/month, dual role of project management and
+fundraising, steps down end of November of Project 1. Facilities Manager joins 3
+months pre-opening for a planned handover overlap.
+
+COMMUNITY BENEFIT TARGETS (first 3 years)
+600 unique users Year 1; 200 school pupils in structured sessions; 150 older adults in
+walking football/gentle activity/wellbeing; 250 people in environmental
+walks/volunteering (500+ volunteer hours); 1,000 residents engaged by Year 2 (over a
+fifth of the ~5,000-population AB38 area); 20 trained volunteers within 3 years; 35%
+court occupancy by Year 3; self-sustaining on trading income by Year 3.
+
+CAT PROCESS CONTEXT
+Form C route under the Community Empowerment (Scotland) Act 2015. Once submitted and
+acknowledged, Moray Council has 6 months to issue a Decision Notice; a further 6
+months to submit the legal offer if accepted; statutory right to internal review then
+appeal to Scottish Ministers if refused. Statutory 8-week public consultation and
+court application also apply as this is inalienable Common Good land. Requesting
+ownership at nil consideration, justified by the Council's avoided costs, the scale of
+RSDG's committed investment (~£1.7M) against the £35,000 valuation, and the public
+benefit case.
+`;
+
+const SYSTEM_PROMPT = `You are helping Rothes Sports Development Group (RSDG) draft answers to a funding application.
+
+${RSDG_KNOWLEDGE_BASE}
+
+GROUND RULES — follow these exactly:
+1. Draft only from facts in the RSDG knowledge base above, or from what's supplied in
+   the form and any uploaded documents for this specific bid. Never invent a
+   statistic, beneficiary number, quote, date, or case study, even a plausible one.
+2. Distinguish secured from planned money. Most named funders in the knowledge base
+   are "application planned" or "in discussion", not committed. Never present a
+   planned or pipeline funder as if the money is already in hand. Say what's confirmed
+   (e.g. the £58,000 reserve, the Forsyth Foundation relationship, Rothes FC's
+   SFA-confirmed partnership) plainly, and say what's still being sought plainly too.
+3. If a strong answer would need a specific fact that isn't in the knowledge base or
+   this bid's supplied material, write the rest of the answer and insert a clear flag
+   instead of guessing: [NEEDS INPUT: describe exactly what's missing]
+4. If a word or character limit is given for a question, stay within it.
+5. Address each question from the funder in turn, clearly labelled, in the same order
+   they were given.
+6. If you've inferred something by connecting two separate pieces of the supplied
+   material, say so briefly at the end of that answer so it can be checked.
+7. If there isn't enough material to answer a question at all, say so plainly under
+   that question rather than guessing.
+8. Where two source documents disagree (e.g. an early draft citing 86 survey responses
+   versus the finalised 191), use the figure the knowledge base marks as authoritative.
+9. After the drafted answers, always add a section headed exactly:
+   RECOMMENDATIONS TO STRENGTHEN THIS APPLICATION
+   Give 4-5 specific, bid-relevant suggestions for real evidence, material, or detail
+   RSDG could go and gather that isn't in the knowledge base or this bid's supplied
+   material, and that would make this particular application stronger given this
+   funder and this question set. Examples of the kind of thing this means: a specific
+   quote or testimonial from a named type of person, a letter of support from a named
+   partner not yet mentioned, a photo or visual that would help, a data point worth
+   confirming, a comparison worth adding. Tailor these to what this funder seems to
+   care about, not a generic list reused every time. These are suggestions for future
+   action, never facts presented as if already true; do not phrase a recommendation so
+   it reads as a claim about RSDG. This section is mandatory on every response, even
+   if the draft above already feels strong.
+
+UK SECTOR BEST PRACTICE — apply these patterns, adapted to RSDG's actual stage:
+- Outputs vs outcomes. An output is what RSDG does (e.g. "600 unique users in Year 1").
+  An outcome is the change that results (e.g. "more Rothes residents meeting weekly
+  physical activity guidelines"). When a question asks about impact or outcomes,
+  answer with the outcome, evidenced by the output and survey data, not just a
+  restated output.
+- RSDG has not opened yet. It has no achieved track record of running the facility.
+  Never write an outcome claim as if it's already been measured (no "our 65%
+  achievement rate"). Every Year 1-3 figure in the knowledge base (600 users, 35%
+  occupancy, the financial projections) is a modelled TARGET from the business plan,
+  not a result. Say so plainly: "projected", "targeting", "the business plan models".
+  What RSDG can evidence now, and should lead with where relevant, is demand and
+  readiness: the 191-response survey, stakeholder and school engagement, the £33,000
+  whisky auction track record, the board's skills and experience.
+- Be specific, not vague, about activities: who, how many, how often, how long,
+  where. Prefer "2 padel courts and 2 pickleball courts, bookable online, £15-20/hour"
+  over "modern sports facilities for the community."
+- Budget lines should be specific and traceable to the knowledge base's own cost
+  tables. Don't introduce a vague "miscellaneous" or unexplained contingency line;
+  where the business plan already includes a contingency (e.g. the 10% construction
+  contingency), it's legitimate because the plan explains what it covers, so explain
+  it the same way here if a budget question is asked.
+- Don't present the same pot of money as covering two different costs without saying
+  so; the knowledge base already flags where funders appear in more than one funding
+  table (e.g. Foundation Scotland, Robertson Trust appearing in both the Project 0 and
+  Year 1 operating tables) as a normal multi-year funder relationship, not double-
+  counting. Keep that same honesty if a budget or funding-mix question touches it.
+- Mirror the funder's own language and criteria wherever their guidelines or question
+  wording is available (from an uploaded document or the form), rather than reusing
+  RSDG's internal terminology by default.
+- Before finalising, self-check against common rejection causes: has the actual
+  question been answered (not a nearby one); is anything vague that could be
+  specific; does any figure need the "target, not achieved" caveat from above; would
+  a reader unfamiliar with RSDG follow this without jargon.
+
+HOUSE WRITING STANDARDS — apply throughout, not just at the end:
+- Plain British English (organisation, programme, fundraising).
+- Evidence over assertion: every claim traces to a fact in the knowledge base or this
+  bid's supplied material. "Raised over £33,000 through a community whisky auction" is
+  usable; "a highly successful fundraising operation" is not, unless a figure backs it.
+- No em-dashes. Use commas, full stops, or brackets instead.
+- Human, not corporate: warm, clear, local, the way you'd talk to a neighbour about
+  something you're proud of. Professional but not stiff, friendly but not trivial.
+  This is a formal funding application, not marketing copy, so evidence and substance
+  lead; RSDG's own energetic brand voice comes through in what's actually true, not in
+  slogans or exclamation marks.
+- Active voice. Direct verbs. No throat-clearing ("It's important to note that...").
+  No unnamed-authority claims ("studies show..."). No rule-of-three padding unless
+  there genuinely are three things. No dramatic colons building to a punchline. Vary
+  sentence and paragraph length rather than settling into a uniform rhythm. No
+  summary paragraph tacked on at the end restating what was just said.
+- Never use these words/phrases: delve, moreover, furthermore, utilize, leverage
+  (verb), facilitate, robust, seamless, comprehensive, cutting-edge, holistic,
+  synergy, innovative, transformative, empower, myriad, plethora, foster, cultivate,
+  pivotal, embark, actionable, streamline, elevate, harness, unlock, journey,
+  compelling, impactful, crucial, ensure/ensuring, world-leading, unparalleled,
+  best-in-class, "we're delighted to", "don't hesitate to get in touch".
+- Don't patronise the reader. Write peer-to-peer. Assume the funder is intelligent and
+  reading many applications; be specific and get to the point.`;
+
+const initial = {
+  funder: '',
+  project: '',
+  amount: '',
+  amountFor: '',
+  priorFunding: '',
+  priorFundingDetail: '',
+  wordLimit: '',
+  keyStory: '',
+  questions: '',
+};
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fileToContentBlock(file) {
+  const type = file.type;
+  if (type === 'application/pdf') {
+    const data = await readFileAsBase64(file);
+    return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } };
+  }
+  if (type.startsWith('image/')) {
+    const data = await readFileAsBase64(file);
+    return { type: 'image', source: { type: 'base64', media_type: type, data } };
+  }
+  if (
+    type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    file.name.toLowerCase().endsWith('.docx')
+  ) {
+    // mammoth is loaded globally via a <script> tag in index.html
+    const arrayBuffer = await file.arrayBuffer();
+    const { value } = await mammoth.extractRawText({ arrayBuffer });
+    return { type: 'text', text: `[Uploaded file: ${file.name}]\n${value}` };
+  }
+  // plain text / fallback
+  const text = await file.text();
+  return { type: 'text', text: `[Uploaded file: ${file.name}]\n${text}` };
+}
+
+function FileDrop({ label, files, setFiles, multiple }) {
+  const inputRef = useRef(null);
+  const onChange = (e) => {
+    const picked = Array.from(e.target.files || []);
+    setFiles(multiple ? [...files, ...picked] : picked.slice(0, 1));
+    e.target.value = '';
+  };
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          border: `1.5px dashed ${COLORS.blue}55`,
+          background: '#f7fafc',
+          borderRadius: 4,
+          padding: '10px 14px',
+          color: COLORS.blue,
+          fontWeight: 600,
+          fontSize: 14,
+          cursor: 'pointer',
+          width: '100%',
+          textAlign: 'left',
+        }}
+      >
+        <Upload size={16} />
+        {label}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple={multiple}
+        onChange={onChange}
+        style={{ display: 'none' }}
+        accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.txt"
+      />
+      {files.length > 0 && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {files.map((f, i) => (
+            <div
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 13,
+                color: COLORS.ink,
+                background: '#fff',
+                border: '1px solid #e2e8ee',
+                borderRadius: 4,
+                padding: '5px 10px',
+              }}
+            >
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+              <button
+                type="button"
+                onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex' }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Field({ label, hint, children }) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <label style={{ display: 'block', fontWeight: 700, color: COLORS.blue, fontSize: 14, marginBottom: 4 }}>
+        {label}
+      </label>
+      {hint && <div style={{ fontSize: 12.5, color: '#5b7183', marginBottom: 6, fontWeight: 300 }}>{hint}</div>}
+      {children}
+    </div>
+  );
+}
+
+const inputStyle = {
+  width: '100%',
+  border: '1.5px solid #d7e1e8',
+  borderRadius: 4,
+  padding: '9px 12px',
+  fontSize: 14.5,
+  fontFamily: 'inherit',
+  color: COLORS.ink,
+  boxSizing: 'border-box',
+  background: '#fff',
+};
+
+function BidBuilder() {
+  const [form, setForm] = useState(initial);
+  const [guidelineFiles, setGuidelineFiles] = useState([]);
+  const [supportFiles, setSupportFiles] = useState([]);
+  const [status, setStatus] = useState('idle'); // idle | loading | done | error
+  const [answers, setAnswers] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [everDone, setEverDone] = useState(false);
+  const [draftNumber, setDraftNumber] = useState(1);
+  const [extraRounds, setExtraRounds] = useState([]); // [{ note, files }]
+  const [addingInfo, setAddingInfo] = useState(false);
+  const [newNote, setNewNote] = useState('');
+  const [newFiles, setNewFiles] = useState([]);
+  const [regenStatus, setRegenStatus] = useState('idle'); // idle | loading | error
+
+  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+
+  const canSubmit = form.funder.trim() && form.project.trim() && form.questions.trim();
+
+  async function getOriginalContentBlocks() {
+    const textSummary = `
+BID DETAILS SUPPLIED BY RSDG
+-----------------------------
+Funder / programme: ${form.funder}
+Specific project this funding is for: ${form.project}
+Amount requested: ${form.amount || '(not given)'}
+What the money specifically pays for: ${form.amountFor || '(not given)'}
+Previous funding from this funder: ${form.priorFunding || '(not given)'}${
+      form.priorFundingDetail ? ` — ${form.priorFundingDetail}` : ''
+    }
+Word/character limit per answer: ${form.wordLimit || '(none given — use judgement, keep answers concise)'}
+Story or fact to feature prominently, if any: ${form.keyStory || '(none given)'}
+`.trim();
+
+    const fileBlocks = [];
+    for (const f of guidelineFiles) {
+      fileBlocks.push({ type: 'text', text: `[This is the funder's own guidelines document: ${f.name}]` });
+      fileBlocks.push(await fileToContentBlock(f));
+    }
+    for (const f of supportFiles) {
+      fileBlocks.push({ type: 'text', text: `[This is RSDG supporting material: ${f.name}]` });
+      fileBlocks.push(await fileToContentBlock(f));
+    }
+    return [{ type: 'text', text: textSummary }, ...fileBlocks];
+  }
+
+  function questionsBlock() {
+    return { type: 'text', text: `FUNDER'S APPLICATION QUESTIONS (answer each in turn, in this order):\n${form.questions}` };
+  }
+
+  async function callClaude(content) {
+    const response = await fetch('/api/draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: 8192,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content }],
+      }),
+    });
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error(`Server returned something that wasn't JSON (HTTP ${response.status}). Likely the /api/draft function itself is failing before it reaches Claude.`);
+    }
+    if (!response.ok || data.type === 'error') {
+      const detail =
+        (data && data.error && (data.error.message || JSON.stringify(data.error))) ||
+        (data && data.detail) ||
+        JSON.stringify(data).slice(0, 400);
+      throw new Error(`API error (HTTP ${response.status}): ${detail}`);
+    }
+    const textParts = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text);
+    if (textParts.length === 0) {
+      throw new Error('The response had no text content. Raw response: ' + JSON.stringify(data).slice(0, 400));
+    }
+    return textParts.join('\n\n');
+  }
+
+  async function handleSubmit() {
+    setStatus('loading');
+    setErrorMsg('');
+    try {
+      const baseBlocks = await getOriginalContentBlocks();
+      const content = [...baseBlocks, questionsBlock()];
+      const draft = await callClaude(content);
+      setAnswers(draft);
+      setStatus('done');
+      setEverDone(true);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(err && err.message ? err.message : 'Something went wrong generating the draft. Please try again.');
+      setStatus('error');
+    }
+  }
+
+  async function handleRegenerate() {
+    const thisRound = { note: newNote, files: newFiles };
+    const updatedRounds = [...extraRounds, thisRound];
+    setRegenStatus('loading');
+    setErrorMsg('');
+    try {
+      const baseBlocks = await getOriginalContentBlocks();
+      const roundBlocks = [];
+      for (let i = 0; i < updatedRounds.length; i++) {
+        const r = updatedRounds[i];
+        roundBlocks.push({
+          type: 'text',
+          text: `ADDITIONAL INFORMATION SUPPLIED AFTER DRAFT ${i + 1}:\n${r.note || '(no notes, see attached files)'}`,
+        });
+        for (const f of r.files) {
+          roundBlocks.push({ type: 'text', text: `[Uploaded with this round: ${f.name}]` });
+          roundBlocks.push(await fileToContentBlock(f));
+        }
+      }
+      const revisionInstruction = {
+        type: 'text',
+        text: `This is a revision. The ADDITIONAL INFORMATION above was supplied after seeing the previous draft below. Produce a complete, updated draft that incorporates it, following all ground rules, house standards, the [NEEDS INPUT] flagging, and the mandatory recommendations section. Write the full draft again, not just a list of changes.\n\nPREVIOUS DRAFT:\n${answers}`,
+      };
+      const content = [...baseBlocks, ...roundBlocks, revisionInstruction, questionsBlock()];
+      const draft = await callClaude(content);
+      setAnswers(draft);
+      setExtraRounds(updatedRounds);
+      setNewNote('');
+      setNewFiles([]);
+      setAddingInfo(false);
+      setDraftNumber((n) => n + 1);
+      setRegenStatus('idle');
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(err && err.message ? err.message : 'Something went wrong generating the updated draft. Please try again.');
+      setRegenStatus('error');
+    }
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(answers);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleDownload() {
+    const blob = new Blob([answers], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `RSDG-bid-draft-${form.funder.replace(/[^a-z0-9]+/gi, '-') || 'draft'}-v${draftNumber}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleReset() {
+    setForm(initial);
+    setGuidelineFiles([]);
+    setSupportFiles([]);
+    setAnswers('');
+    setStatus('idle');
+    setEverDone(false);
+    setDraftNumber(1);
+    setExtraRounds([]);
+    setAddingInfo(false);
+    setNewNote('');
+    setNewFiles([]);
+    setRegenStatus('idle');
+  }
+
+  return (
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px 60px' }}>
+        {!everDone && (
+          <div
+            style={{
+              background: '#fff',
+              marginTop: -24,
+              borderRadius: 6,
+              boxShadow: '0 1px 3px rgba(0,60,90,0.12)',
+              padding: '28px 28px 8px',
+            }}
+          >
+            <SectionTitle n="1" title="This bid" />
+            <Field label="Which funder or programme is this for?">
+              <input style={inputStyle} value={form.funder} onChange={set('funder')} placeholder="e.g. Sport Scotland — Community Sport Fund" />
+            </Field>
+            <Field label="Do you have the funder's guidelines?" hint="Optional, but it helps the draft match what they're actually looking for.">
+              <FileDrop label="Upload funder guidelines" files={guidelineFiles} setFiles={setGuidelineFiles} multiple={false} />
+            </Field>
+            <Field label="Which specific project or piece of work is the funding for?">
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} value={form.project} onChange={set('project')} placeholder="e.g. Refurbishing the outdoor multi-use games area" />
+            </Field>
+            <Field label="How much are you asking for, and what does it pay for?">
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input style={{ ...inputStyle, maxWidth: 140 }} value={form.amount} onChange={set('amount')} placeholder="£ amount" />
+                <input style={inputStyle} value={form.amountFor} onChange={set('amountFor')} placeholder="what it specifically pays for" />
+              </div>
+            </Field>
+            <Field label="Have you had funding from this funder before?">
+              <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+                {['Yes', 'No'].map((opt) => (
+                  <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14 }}>
+                    <input
+                      type="radio"
+                      name="prior"
+                      checked={form.priorFunding === opt}
+                      onChange={() => setForm({ ...form, priorFunding: opt })}
+                    />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+              <input style={inputStyle} value={form.priorFundingDetail} onChange={set('priorFundingDetail')} placeholder="Any detail worth adding (optional)" />
+            </Field>
+            <Field label="Word or character limit per answer, if the funder sets one">
+              <input style={{ ...inputStyle, maxWidth: 220 }} value={form.wordLimit} onChange={set('wordLimit')} placeholder="e.g. 250 words per answer" />
+            </Field>
+
+            <SectionTitle n="2" title="What makes this application strong" />
+            <Field label="A particular result, story, or fact you want front and centre">
+              <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.keyStory} onChange={set('keyStory')} placeholder="e.g. Since the padel courts opened, junior membership has grown from..." />
+            </Field>
+            <Field label="Anything else specific to this bid" hint="Only needed for things not already in the business plan, e.g. a new quote, a recent letter of support, updated figures. The core project, board and financial detail is already built in.">
+              <FileDrop label="Upload additional documents" files={supportFiles} setFiles={setSupportFiles} multiple={true} />
+            </Field>
+
+            <SectionTitle n="3" title="The funder's questions" />
+            <Field label="Paste the application questions exactly as the funder gives them">
+              <textarea
+                style={{ ...inputStyle, minHeight: 140, resize: 'vertical' }}
+                value={form.questions}
+                onChange={set('questions')}
+                placeholder={'1. Describe your organisation and its beneficiaries.\n2. What difference will this funding make?\n...'}
+              />
+            </Field>
+
+            <div style={{ padding: '10px 0 26px' }}>
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit || status === 'loading'}
+                style={{
+                  background: canSubmit ? COLORS.orange : '#cbd5df',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 5,
+                  padding: '13px 26px',
+                  fontSize: 15.5,
+                  fontWeight: 700,
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  width: '100%',
+                  justifyContent: 'center',
+                }}
+              >
+                {status === 'loading' ? (
+                  <>
+                    <Loader2 size={18} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
+                    Drafting your application…
+                  </>
+                ) : (
+                  <>
+                    Draft this application
+                    <ChevronRight size={18} />
+                  </>
+                )}
+              </button>
+              <p style={{ fontSize: 12.5, color: '#5b7183', textAlign: 'center', marginTop: 10, fontWeight: 300 }}>
+                Answers are drafted only from RSDG's business plan and what's entered above. Anything we can't back up is flagged, not invented.
+              </p>
+              {status === 'error' && (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: '#b42318', fontSize: 13.5, marginTop: 10 }}>
+                  <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+                  {errorMsg}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {everDone && (
+          <div
+            style={{
+              background: '#fff',
+              marginTop: -24,
+              borderRadius: 6,
+              boxShadow: '0 1px 3px rgba(0,60,90,0.12)',
+              padding: '28px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
+              <h2 style={{ color: COLORS.blue, fontSize: 20, fontWeight: 800, margin: 0 }}>
+                Draft answers <span style={{ color: '#8fa3b3', fontWeight: 600, fontSize: 14 }}>· draft {draftNumber}</span>
+              </h2>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={handleCopy} style={ghostBtn}>
+                  {copied ? <Check size={15} /> : <Copy size={15} />}
+                  {copied ? 'Copied' : 'Copy all'}
+                </button>
+                <button onClick={handleDownload} style={ghostBtn}>
+                  <Download size={15} />
+                  Download
+                </button>
+              </div>
+            </div>
+            <div
+              style={{
+                whiteSpace: 'pre-wrap',
+                fontSize: 14.5,
+                lineHeight: 1.65,
+                color: COLORS.ink,
+                borderTop: `3px solid ${COLORS.yellow}`,
+                paddingTop: 18,
+                opacity: regenStatus === 'loading' ? 0.5 : 1,
+              }}
+              dangerouslySetInnerHTML={{ __html: highlightFlags(answers) }}
+            />
+
+            {regenStatus === 'loading' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, color: COLORS.blue, fontSize: 14, fontWeight: 600 }}>
+                <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                Updating your draft…
+              </div>
+            )}
+            {regenStatus === 'error' && (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: '#b42318', fontSize: 13.5, marginTop: 14 }}>
+                <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+                {errorMsg}
+              </div>
+            )}
+
+            {addingInfo && regenStatus !== 'loading' && (
+              <div style={{ marginTop: 24, padding: 18, background: '#f7fafc', borderRadius: 6, border: '1px solid #e2e8ee' }}>
+                <Field label="What would you like to add or change?" hint="A missing figure, a quote, an answer to one of the recommendations above, a correction, anything.">
+                  <textarea
+                    style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }}
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="e.g. Here's a quote from a Rothes Primary PE teacher: ..."
+                  />
+                </Field>
+                <Field label="Attach a document, if useful" hint="Optional.">
+                  <FileDrop label="Upload document" files={newFiles} setFiles={setNewFiles} multiple={true} />
+                </Field>
+                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                  <button
+                    onClick={handleRegenerate}
+                    disabled={!newNote.trim() && newFiles.length === 0}
+                    style={{
+                      background: newNote.trim() || newFiles.length > 0 ? COLORS.orange : '#cbd5df',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 5,
+                      padding: '10px 20px',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: newNote.trim() || newFiles.length > 0 ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    Generate updated draft
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAddingInfo(false);
+                      setNewNote('');
+                      setNewFiles([]);
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#5b7183', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 26, flexWrap: 'wrap' }}>
+              {!addingInfo && (
+                <button
+                  onClick={() => setAddingInfo(true)}
+                  disabled={regenStatus === 'loading'}
+                  style={{
+                    background: COLORS.blue,
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 5,
+                    padding: '10px 20px',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: regenStatus === 'loading' ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Add more information to this bid
+                </button>
+              )}
+              <button
+                onClick={handleReset}
+                disabled={regenStatus === 'loading'}
+                style={{
+                  background: 'none',
+                  border: `1.5px solid ${COLORS.blue}`,
+                  color: COLORS.blue,
+                  borderRadius: 5,
+                  padding: '10px 20px',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: regenStatus === 'loading' ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Start a new application
+              </button>
+            </div>
+          </div>
+        )}
+        <style>{`
+          @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          ::placeholder { color: #a3b3bf; font-weight: 300; }
+        `}</style>
+      </div>
+  );
+}
+
+function SectionTitle({ n, title }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0 18px' }}>
+      <div
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: '50%',
+          background: COLORS.blue,
+          color: '#fff',
+          fontSize: 12.5,
+          fontWeight: 800,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {n}
+      </div>
+      <h2 style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, margin: 0 }}>{title}</h2>
+    </div>
+  );
+}
+
+const ghostBtn = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  background: '#fff',
+  border: '1.5px solid #d7e1e8',
+  color: COLORS.blue,
+  borderRadius: 5,
+  padding: '7px 13px',
+  fontSize: 13,
+  fontWeight: 700,
+  cursor: 'pointer',
+};
+
+function highlightFlags(text) {
+  const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const withFlags = escaped.replace(
+    /\[NEEDS INPUT:[^\]]*\]/g,
+    (match) =>
+      `<span style="background:#fff3cd; color:#7a5b00; padding:1px 5px; border-radius:3px; font-weight:600;">${match}</span>`
+  );
+  return withFlags.replace(
+    /RECOMMENDATIONS TO STRENGTHEN THIS APPLICATION/g,
+    `</div><div style="margin-top:28px; padding:18px 20px; background:#f0f9f0; border-left:4px solid ${COLORS.green}; border-radius:4px;"><div style="color:${COLORS.blueDark}; font-weight:800; font-size:14.5px; letter-spacing:0.2px; margin-bottom:10px;">Recommendations to strengthen this application</div>`
+  );
+}
+
+/* ---------------- Funding pipeline tracker ---------------- */
+
+const STATUS_OPTIONS = ['Not started', 'Researching', 'Drafting', 'Submitted', 'Awarded', 'Declined', 'Ongoing', 'Secured'];
+
+const STATUS_COLORS = {
+  'Not started': '#94a3b8',
+  Researching: '#0284c7',
+  Drafting: COLORS.orange,
+  Submitted: '#a855f7',
+  Awarded: COLORS.green,
+  Declined: '#dc2626',
+  Ongoing: '#0891b2',
+  Secured: COLORS.green,
+};
+
+const fieldLabelStyle = { fontSize: 11.5, fontWeight: 700, color: COLORS.blue, marginBottom: 3 };
+
+function statusPillStyle(color) {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 108,
+    height: 24,
+    lineHeight: '16px',
+    boxSizing: 'border-box',
+    fontSize: 11.5,
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    color: '#fff',
+    background: color || '#94a3b8',
+    border: 'none',
+    outline: 'none',
+    borderRadius: 20,
+    padding: '0 6px',
+    margin: 0,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    textAlign: 'center',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    appearance: 'none',
+  };
+}
+
+function StatusPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button type="button" onClick={() => setOpen((o) => !o)} style={{ ...statusPillStyle(STATUS_COLORS[value]), cursor: 'pointer' }}>
+        {value}
+      </button>
+      {open && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 30 }} onClick={() => setOpen(false)} />
+          <div
+            style={{
+              position: 'absolute',
+              top: '130%',
+              left: 0,
+              background: '#fff',
+              border: '1px solid #e2e8ee',
+              borderRadius: 6,
+              boxShadow: '0 4px 14px rgba(0,60,90,0.16)',
+              zIndex: 40,
+              minWidth: 150,
+              overflow: 'hidden',
+            }}
+          >
+            {STATUS_OPTIONS.map((s) => (
+              <div
+                key={s}
+                onClick={() => {
+                  onChange(s);
+                  setOpen(false);
+                }}
+                style={{
+                  padding: '8px 12px',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  color: COLORS.ink,
+                  background: s === value ? '#f0f4f7' : '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLORS[s] || '#94a3b8', flexShrink: 0 }} />
+                {s}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function seedFunders() {
+  const rows = [
+    // Capital portfolio (Project 1 build, target ~£1.55M)
+    ['Scottish Land Fund', 'Land purchase', '£35,000', 'Not started', 'Application planned mid-2026', ''],
+    ['Rothes Wind Farm', 'Project 1 (capital)', '£170,000', 'Researching', 'Approximate; to be discussed. Part of £200k+ overall relationship with RSDG.', ''],
+    ['SportScotland', 'Sub-projects 1b/1c', '£100,000', 'Not started', '', ''],
+    [
+      'SSEN Community Benefit Funding',
+      'Project 1, Regional Fund',
+      '£500,000',
+      'Not started',
+      'Fund ID S52883. Range is £40,000–£500,000 depending on scale of ask. Closed as of the last GrantFinder update (18/07/2025), stated to reopen in 2026, worth checking current status before assuming it is closed.',
+      'https://www.ssen-transmission.co.uk/information-centre/community-benefit-fund/regional-community-benefit-fund/',
+    ],
+    ['Garfield Weston Foundation', 'Sub-project 1d (pavilion)', '£30,000', 'Not started', '', ''],
+    ['Peter Harrison Foundation', 'Sub-project 1b (courts)', '£30,000', 'Not started', '', ''],
+    ['Forsyth Foundation', 'Project 1 (capital tranche)', '£30,000', 'Researching', 'Relationship established', ''],
+    ['Scottish Landfill Communities', 'Sub-project 1a (groundworks)', '£25,000', 'Not started', '', ''],
+    ['Weir Charitable Trust', 'Sub-project 1b or 1d', '£25,000', 'Not started', '', ''],
+    ['Local fundraising', 'Capital, general', '£25,000', 'Ongoing', '', ''],
+    ['Barclays Community Sport', 'Sub-project 1b (courts)', '£20,000', 'Not started', '', ''],
+    ['CARES (Net Zero)', 'Energy/sustainability elements', '£20,000', 'Not started', '', ''],
+    ['HIE', 'Project 0/1, general relationship', 'TBC', 'Researching', 'In discussion', ''],
+    [
+      'HIE',
+      'Community Right to Buy Fund: registering community interest in land',
+      '£5,000',
+      'Not started',
+      'Covers up to 80% of costs. Worth checking with the CAT solicitor whether Right to Buy registration is a relevant route alongside the Community Asset Transfer, since they are related but distinct legal mechanisms.',
+      'https://www.hie.co.uk/support/browse-all-support-services/support-for-community-organisations/community-right-to-buy-fund/',
+    ],
+    [
+      'LTA Quick Access Loan Scheme',
+      'Loan contingency if grant funding falls short',
+      '£250,000',
+      'Not started',
+      'Interest-free loan, not a grant. Held in reserve as a fallback; the income model does not assume any loan servicing cost.',
+      '',
+    ],
+    [
+      'Moray Council',
+      'Place Based Investment Programme or similar',
+      'TBC',
+      'Not started',
+      "Named in the fundraising strategy as a potential statutory contribution, not yet explored.",
+      '',
+    ],
+    [
+      'UK Shared Prosperity Fund',
+      'Successor programmes, to be monitored',
+      'TBC',
+      'Not started',
+      'No specific current programme identified; the fundraising strategy flags this as something to watch as new UK government funding rounds emerge.',
+      '',
+    ],
+    ['Glen Grant', 'Corporate sponsorship prospect (distillery community investment)', 'TBC', 'Not started', 'Named in the business plan as a local distillery to approach via community investment or CSR team.', ''],
+    ['Macallan', 'Corporate sponsorship prospect (distillery community investment)', 'TBC', 'Not started', 'Named in the business plan as a local distillery to approach via community investment or CSR team.', ''],
+    ['Cardhu', 'Corporate sponsorship prospect (distillery community investment)', 'TBC', 'Not started', 'Named in the business plan as a local distillery to approach via community investment or CSR team.', ''],
+    ['Craigellachie', 'Corporate sponsorship prospect (distillery community investment)', 'TBC', 'Not started', 'Named in the business plan as a local distillery to approach via community investment or CSR team.', ''],
+    ['Aberlour', 'Corporate sponsorship prospect (distillery community investment)', 'TBC', 'Not started', 'Named in the business plan as a local distillery to approach via community investment or CSR team.', ''],
+    // Project 0 operating (~£152k-176k)
+    ['Rothes Wind Farm', 'Project 0 Y1 and Y2 (operating)', '£40,000', 'Researching', 'To be discussed', ''],
+    ['Robertson Trust', 'Project 0 Y1', '£25,000', 'Not started', '', ''],
+    ['Foundation Scotland', 'Project 0 Y1', '£15,000', 'Not started', '', 'https://www.foundationscotland.org.uk/apply-for-funding/funding-available'],
+    ['Forsyth Foundation', 'Project 0 Y1 and Y2 (operating)', '£10,000', 'Researching', 'Committed in principle', ''],
+    ['William Grant Foundation', 'Project 0 Y1', '£6,000', 'Not started', '', ''],
+    ['ScottishPower Foundation', 'Project 0 Y2', '£5,000', 'Not started', '', ''],
+    ['Local fundraising', 'Project 0 Y1 and Y2, community events', '£15,000', 'Ongoing', '', ''],
+    ['Additional pipeline (DO-secured)', 'Project 0 Y2 buffer', '£5,000', 'Not started', '', ''],
+    [
+      'Foundation Scotland',
+      'Dorenell Wind Farm Community Benefit Fund',
+      '£30,000',
+      'Not started',
+      'Fund ID S46290, deadline 30/11/2026. Larger awards considered on request. Benefits Dufftown, Auchindoun, Glenrinnes, Glenlivet, Inveravon and Cabrach specifically, not Rothes itself, so check carefully whether a genuinely qualifying beneficiary link can be shown before applying.',
+      'https://www.foundationscotland.org.uk/dorenell',
+    ],
+    // Year 1 operating raise (during Project 1, target £140,000)
+    ['Foundation Scotland', 'Y1 operating', '£25,000', 'Not started', 'Follow-on after P0 grant', ''],
+    ['Robertson Trust', 'Y1 operating', '£25,000', 'Not started', 'Follow-on after P0 grant', ''],
+    ['William Grant Foundation', 'Y1 operating', '£15,000', 'Not started', 'Follow-on after P0 grant', ''],
+    ['Local fundraising', 'Y1 operating, community campaign', '£15,000', 'Ongoing', 'Major launch-year campaign', ''],
+    ['Forsyth Foundation', 'Y1 operating', '£10,000', 'Researching', 'Continuing relationship', ''],
+    ['ScottishPower Foundation', 'Y1 operating', '£10,000', 'Not started', 'Follow-on after P0 grant', ''],
+    ['Additional pipeline (DO-secured)', 'Y1 operating, during P1', '£40,000', 'Not started', '', ''],
+    // Already in hand
+    ['Existing reserves', 'Project 0 opening balance', '£58,000', 'Secured', "RSDG's cash position at the start of Project 0", ''],
+    ['Whisky for Rothes auction', 'Community fundraising track record', '£33,000', 'Secured', 'Actual figure was over £33,000. Run via Just Whisky.', ''],
+    // Added from GrantFinder research (Sept 2026), not yet reflected in the business plan
+    [
+      'David and June Gordon Memorial Trust',
+      'Music, arts, youth activity or ecumenical services in NE Scotland',
+      '£2,000',
+      'Not started',
+      'Fund ID S48430. Typical grants £500–£2,000; £15,000–£20,000 distributed annually in total. Rolling; trustees meet April and October, apply 3-4 weeks ahead. Excludes individuals. Small amount, best suited to a specific programme element (e.g. youth coaching or an arts/music strand) rather than the core build.',
+      'https://www.davidandjunegordonmemorialtrust.co.uk/',
+    ],
+    [
+      'Gordon and Ena Baxter Foundation',
+      'Capital expenditure, sport priority (N Scotland)',
+      '£25,000',
+      'Not started',
+      "Fund ID S47290. Grants typically £100–£25,000. Requires match funding already secured, roughly 50%+ of project cost. Excludes core/running costs and land/building purchase, so fits a specific capital element rather than the whole build. Two-stage application, four rounds a year.",
+      'http://www.gebfoundation.com/',
+    ],
+    [
+      'Hays Travel Foundation',
+      'Youth (up to 25) sport, education or health project',
+      '£15,000',
+      'Not started',
+      'Fund ID S44428. Typically £2,000–£15,000; average award last year was around £3,500. Depends on Hays Travel having a branch near Rothes or Elgin, worth checking the branch locator before applying.',
+      'https://info.haystravel.co.uk/foundation',
+    ],
+    [
+      'HITRANS',
+      'Community Cycle Parking Grant',
+      'TBC',
+      'Not started',
+      'Fund ID S55188. Discretionary, no set maximum. Closed to applications as of the last GrantFinder update, and only relevant if a cycle-parking element is added to the site plan. Narrow fit against the current project scope.',
+      'https://hitrans.org.uk/travel/funding-for-active-travel-infrastructure-projects-in-the-community-and-workplace/',
+    ],
+    [
+      'Misses Barrie Charitable Trust',
+      'General charitable purposes incl. amateur sport (Scotland)',
+      '£3,000',
+      'Not started',
+      'Fund ID S32651. Typically £1,000–£3,000, occasional larger grant. No website; apply by post/email. High volume of unsolicited applications, unsuccessful applicants are not notified.',
+      '',
+    ],
+    [
+      'Moray Local Action Fund',
+      'Community-led project, revenue or capital (Moray)',
+      '£25,000',
+      'Not started',
+      'Fund ID S52555. Two tiers: small grants to £5,000, main grants £5,000–£25,000. This round closed 20/07/2026; projects had to complete by 31/03/2027. Watch TSI Moray for the next round.',
+      'https://www.moraylag.org.uk/funding-copy',
+    ],
+    [
+      'Moray Coastal Communities Fund',
+      'Coastal or marine-linked community project',
+      '£50,000',
+      'Not started',
+      'Medium grants £10,000–£20,000; strategic grants £20,001–£50,000. Deadline 18/09/2026, 5pm, confirmed live. Requires the project to sit within 12 nautical miles of the Moray coastline with a clear coast/sea link. Rothes is inland, so this looks like a poor geographic fit rather than a live opportunity, flagging rather than recommending.',
+      'https://www.moray.gov.uk/benefits-and-grants/council-and-government-grants/moray-coastal-communities-fund-grant-scheme/',
+    ],
+    [
+      'Moray Communities Mental Health and Wellbeing Fund',
+      'Adult mental health and wellbeing initiatives (Moray)',
+      '£15,000',
+      'Not started',
+      'Fund ID S47611. Small grants up to £2,000 (1 year only); individual org grants up to £10,000/year (up to 2 years); partnership grants up to £15,000/year (up to 2 years). Closed to applications as of the last GrantFinder update; watch TSI Moray for the next round. Priorities (rural isolation, older people, at-risk groups) line up well with the walking football and older-adult wellbeing programming.',
+      'https://tsimoray.org.uk/funding/moray-communities-mental-health-and-wellbeing/',
+    ],
+  ];
+  return rows.map(([name, appliesTo, amount, status, notes, url], i) => ({
+    id: `f${i}`,
+    name,
+    appliesTo,
+    amount,
+    deadline: '',
+    status,
+    notes,
+    url,
+  }));
+}
+
+function parseAmount(amountStr) {
+  // Pulls the highest number out of a figure like "£35,000" or "£40,000-£500,000".
+  // TBC / discretionary / non-numeric values correctly return 0.
+  const matches = String(amountStr).replace(/,/g, '').match(/[\d.]+/g);
+  if (!matches) return 0;
+  return Math.max(...matches.map(parseFloat));
+}
+
+function groupFunders(list) {
+  // Preserves first-seen order of each funder name
+  const order = [];
+  const map = {};
+  list.forEach((f) => {
+    if (!map[f.name]) {
+      map[f.name] = [];
+      order.push(f.name);
+    }
+    map[f.name].push(f);
+  });
+  return order.map((name) => ({ name, rows: map[name] }));
+}
+
+function FunderLine({ f, indent, expandedId, setExpandedId, updateRow, deleteRow }) {
+  const isOpen = expandedId === f.id;
+  return (
+    <React.Fragment>
+      <tr style={{ borderBottom: isOpen ? 'none' : '1px solid #eef2f5' }}>
+        <td style={{ padding: '8px 10px', fontWeight: 600, color: COLORS.ink, paddingLeft: indent ? 28 : 10, wordBreak: 'break-word' }}>
+          {indent && <span style={{ color: '#c2ccd4', marginRight: 6 }}>—</span>}
+          {indent ? f.appliesTo || f.name : f.name}
+        </td>
+        <td style={{ padding: '8px 10px', color: COLORS.ink, wordBreak: 'break-word' }}>{f.amount}</td>
+        <td style={{ padding: '8px 10px', color: '#5b7183', wordBreak: 'break-word' }}>{f.deadline || '—'}</td>
+        <td style={{ padding: '8px 10px' }}>
+          <StatusPicker value={f.status} onChange={(s) => updateRow(f.id, { status: s })} />
+        </td>
+        <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+          {f.url ? (
+            <a href={f.url} target="_blank" rel="noopener noreferrer" title={f.url} style={{ color: COLORS.blue, display: 'inline-flex' }}>
+              <ExternalLink size={15} />
+            </a>
+          ) : (
+            <span style={{ color: '#d7e1e8' }}>—</span>
+          )}
+        </td>
+        <td style={{ padding: '8px 10px' }}>
+          <button
+            onClick={() => setExpandedId(isOpen ? null : f.id)}
+            title={isOpen ? 'Close details' : 'Edit details'}
+            style={{
+              border: 'none',
+              background: 'none',
+              color: COLORS.blue,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: 'transform 0.15s ease',
+            }}
+          >
+            <ChevronRight size={18} />
+          </button>
+        </td>
+      </tr>
+      {isOpen && (
+        <tr style={{ borderBottom: '1px solid #eef2f5' }}>
+          <td colSpan={6} style={{ padding: '4px 10px 18px', background: '#f7fafc' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '12px 4px 4px' }}>
+              <div>
+                <div style={fieldLabelStyle}>Funder name</div>
+                <input style={inputStyle} value={f.name} onChange={(e) => updateRow(f.id, { name: e.target.value })} />
+              </div>
+              <div>
+                <div style={fieldLabelStyle}>Amount</div>
+                <input style={inputStyle} value={f.amount} onChange={(e) => updateRow(f.id, { amount: e.target.value })} />
+              </div>
+              <div>
+                <div style={fieldLabelStyle}>Applies to</div>
+                <input style={inputStyle} value={f.appliesTo} onChange={(e) => updateRow(f.id, { appliesTo: e.target.value })} />
+              </div>
+              <div>
+                <div style={fieldLabelStyle}>Deadline (if there is one)</div>
+                <input
+                  style={inputStyle}
+                  value={f.deadline}
+                  onChange={(e) => updateRow(f.id, { deadline: e.target.value })}
+                  placeholder="e.g. 31 March 2027, or 'rolling'"
+                />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={fieldLabelStyle}>URL (link to further information)</div>
+                <input
+                  style={inputStyle}
+                  value={f.url}
+                  onChange={(e) => updateRow(f.id, { url: e.target.value })}
+                  placeholder="https://…"
+                />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={fieldLabelStyle}>Notes</div>
+                <textarea
+                  style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }}
+                  value={f.notes}
+                  onChange={(e) => updateRow(f.id, { notes: e.target.value })}
+                />
+              </div>
+            </div>
+            {indent && (
+              <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '8px 4px 0' }}>
+                Renaming "Funder name" here moves this ask out of its group if the new name doesn't match the others.
+              </p>
+            )}
+            <button
+              onClick={() => {
+                deleteRow(f.id);
+                setExpandedId(null);
+              }}
+              style={{
+                marginTop: 6,
+                background: 'none',
+                border: 'none',
+                color: '#b42318',
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Remove this funder from the pipeline
+            </button>
+          </td>
+        </tr>
+      )}
+    </React.Fragment>
+  );
+}
+
+function mergeWithSeed(stored) {
+  const seed = seedFunders();
+  const key = (r) => `${r.name}|||${r.appliesTo}`;
+  const seedByKey = {};
+  seed.forEach((r) => {
+    seedByKey[key(r)] = r;
+  });
+  const storedKeys = new Set(stored.map(key));
+
+  // Backfill fields (like the new url column) onto existing rows without touching
+  // anything the user has already edited (status, notes, or a url they've set).
+  const backfilled = stored.map((r) => {
+    const match = seedByKey[key(r)];
+    const patch = {};
+    if (r.url === undefined) patch.url = (match && match.url) || '';
+    if (r.deadline === undefined) patch.deadline = (match && match.deadline) || '';
+    return Object.keys(patch).length ? { ...r, ...patch } : r;
+  });
+
+  // Add any funds from the current seed list that aren't in storage yet, with ids
+  // that can't collide with whatever's already there.
+  const usedIds = new Set(backfilled.map((r) => r.id));
+  let n = 0;
+  const additions = seed
+    .filter((r) => !storedKeys.has(key(r)))
+    .map((r) => {
+      let id = r.id;
+      while (usedIds.has(id)) {
+        id = `fnew${n++}`;
+      }
+      usedIds.add(id);
+      return { ...r, id };
+    });
+
+  return [...backfilled, ...additions];
+}
+
+function PipelineTracker() {
+  const [funders, setFunders] = useState(null); // null = still loading
+  const [loadError, setLoadError] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newFunder, setNewFunder] = useState({ name: '', appliesTo: '', amount: '', deadline: '', status: 'Not started', notes: '', url: '' });
+  const [expandedId, setExpandedId] = useState(null);
+  const [expandedGroups, setExpandedGroups] = useState({});
+  const [pdfStatus, setPdfStatus] = useState('idle'); // idle | working | error
+  const [pdfErrorDetail, setPdfErrorDetail] = useState('');
+
+  function toggleGroup(name) {
+    setExpandedGroups((prev) => ({ ...prev, [name]: !prev[name] }));
+  }
+
+  async function pipelineGet() {
+    const res = await fetch('/api/pipeline');
+    if (!res.ok) throw new Error('Pipeline load failed');
+    const data = await res.json();
+    return data && data.value ? JSON.parse(data.value) : null;
+  }
+
+  async function pipelineSet(value) {
+    const res = await fetch('/api/pipeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(value) }),
+    });
+    if (!res.ok) throw new Error('Pipeline save failed');
+  }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const value = await pipelineGet();
+        if (value && Array.isArray(value) && value.length > 0) {
+          const merged = mergeWithSeed(value);
+          setFunders(merged);
+          if (merged.length !== value.length || JSON.stringify(merged) !== JSON.stringify(value)) {
+            await pipelineSet(merged);
+          }
+        } else {
+          const seeded = seedFunders();
+          setFunders(seeded);
+          await pipelineSet(seeded);
+        }
+      } catch (err) {
+        // Key doesn't exist yet, or storage failed — seed locally and try to save
+        const seeded = seedFunders();
+        setFunders(seeded);
+        try {
+          await pipelineSet(seeded);
+        } catch (e2) {
+          setLoadError(true);
+        }
+      }
+    })();
+  }, []);
+
+  async function persist(updated) {
+    setFunders(updated);
+    try {
+      await pipelineSet(updated);
+    } catch (err) {
+      setLoadError(true);
+    }
+  }
+
+  function updateRow(id, patch) {
+    persist(funders.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  }
+
+  function deleteRow(id) {
+    persist(funders.filter((f) => f.id !== id));
+  }
+
+  function addRow() {
+    if (!newFunder.name.trim()) return;
+    const row = { ...newFunder, id: `f${Date.now()}` };
+    persist([...funders, row]);
+    setNewFunder({ name: '', appliesTo: '', amount: '', deadline: '', status: 'Not started', notes: '', url: '' });
+    setShowAdd(false);
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function handleDownloadPdf() {
+    setPdfStatus('idle');
+    try {
+      // Opened synchronously in direct response to the click, so pop-up blockers allow it.
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error('Pop-up blocked — allow pop-ups for this page in your browser and try again.');
+      }
+
+      const grouped = groupFunders(funders);
+      const genDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      const statusLines = STATUS_OPTIONS.filter((s) => statusCounts[s] > 0)
+        .map((s) => `<div>${escapeHtml(s)}: ${statusCounts[s]}</div>`)
+        .join('');
+
+      const funderBlocks = grouped
+        .map(({ name, rows }) => {
+          const total = rows.reduce((sum, r) => sum + parseAmount(r.amount), 0);
+          const statuses = [...new Set(rows.map((r) => r.status))].join(', ');
+          const headline =
+            rows.length > 1
+              ? `${escapeHtml(name)} — £${total.toLocaleString()} across ${rows.length} asks — ${escapeHtml(statuses)}`
+              : `${escapeHtml(name)} — ${escapeHtml(rows[0].amount)} — ${escapeHtml(rows[0].status)}`;
+          const subLines = rows
+            .map((r) => {
+              const bits = [r.appliesTo || 'General'];
+              if (rows.length > 1) bits.push(r.amount, r.status);
+              if (r.deadline) bits.push(`deadline: ${r.deadline}`);
+              if (r.url) bits.push(r.url);
+              return `<div class="subline">• ${escapeHtml(bits.join(' — '))}</div>`;
+            })
+            .join('');
+          return `<div class="funder"><div class="headline">${headline}</div>${subLines}</div>`;
+        })
+        .join('');
+
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RSDG Funding Pipeline — Headlines Report</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; color: #0f2a3d; padding: 28px; }
+  h1 { color: ${COLORS.blue}; font-size: 19px; margin: 0 0 2px; }
+  .subtitle { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+  .meta { color: #5b7183; font-size: 11px; margin-bottom: 18px; }
+  .totals div { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+  h2 { color: ${COLORS.blue}; font-size: 13.5px; margin-top: 22px; margin-bottom: 8px; }
+  .funder { margin-bottom: 10px; }
+  .headline { font-weight: 700; font-size: 12.5px; }
+  .subline { font-size: 11px; color: #333; margin-left: 14px; }
+  @media print { body { padding: 10mm; } }
+</style>
+</head>
+<body>
+  <h1>Rothes Sports Development Group</h1>
+  <div class="subtitle">Funding Pipeline — Headlines Report</div>
+  <div class="meta">Generated ${genDate}</div>
+  <div class="totals">
+    <div>Total identified across all funders: £${totalIdentified.toLocaleString()}+</div>
+    <div>Secured or awarded: £${totalSecured.toLocaleString()}</div>
+  </div>
+  <h2>By status</h2>
+  ${statusLines}
+  <h2>Funders</h2>
+  ${funderBlocks}
+</body>
+</html>`;
+
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      // Give the new window a moment to lay out the content before invoking print.
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    } catch (err) {
+      console.error(err);
+      setPdfErrorDetail(err && err.message ? err.message : String(err));
+      setPdfStatus('error');
+    }
+  }
+
+  if (funders === null) {
+    return (
+      <div style={{ padding: 60, textAlign: 'center', color: COLORS.blue, fontWeight: 600 }}>
+        <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+        <div style={{ marginTop: 10 }}>Loading the funding pipeline…</div>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  const totalIdentified = funders.reduce((sum, f) => sum + parseAmount(f.amount), 0);
+  const totalSecured = funders.filter((f) => f.status === 'Secured' || f.status === 'Awarded').reduce((sum, f) => sum + parseAmount(f.amount), 0);
+  const statusCounts = STATUS_OPTIONS.reduce((acc, s) => ({ ...acc, [s]: funders.filter((f) => f.status === s).length }), {});
+
+  return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 60px' }}>
+      <div
+        style={{
+          background: '#fff',
+          marginTop: -24,
+          borderRadius: 6,
+          boxShadow: '0 1px 3px rgba(0,60,90,0.12)',
+          padding: '28px',
+        }}
+      >
+        <h2 style={{ color: COLORS.blue, fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>Funding pipeline</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+          <p style={{ color: '#5b7183', fontSize: 13.5, margin: 0, maxWidth: 520, fontWeight: 300 }}>
+            Shared across everyone who opens this tool. Seeded from the business plan; edit statuses and notes as things move.
+          </p>
+          <button onClick={handleDownloadPdf} style={{ ...ghostBtn, whiteSpace: 'nowrap' }}>
+            <Download size={15} />
+            Print headlines report (save as PDF)
+          </button>
+        </div>
+        {pdfStatus === 'error' && (
+          <div style={{ display: 'flex', gap: 8, color: '#b42318', fontSize: 13, marginBottom: 16 }}>
+            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>
+              Couldn't build the PDF: <code style={{ fontFamily: 'monospace', fontSize: 12 }}>{pdfErrorDetail || 'unknown error'}</code>. Try again, or use Copy/Download on the table itself in the meantime.
+            </span>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 22, padding: '14px 18px', background: '#f7fafc', borderRadius: 6 }}>
+          <div>
+            <div style={{ fontSize: 12, color: '#5b7183', fontWeight: 700 }}>IDENTIFIED (ALL ROWS)</div>
+            <div style={{ fontSize: 20, color: COLORS.blue, fontWeight: 800 }}>£{totalIdentified.toLocaleString()}+</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: '#5b7183', fontWeight: 700 }}>SECURED OR AWARDED</div>
+            <div style={{ fontSize: 20, color: COLORS.green, fontWeight: 800 }}>£{totalSecured.toLocaleString()}</div>
+          </div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 12, color: '#5b7183', fontWeight: 700, marginBottom: 6 }}>BY STATUS</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {STATUS_OPTIONS.filter((s) => statusCounts[s] > 0).map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    color: '#fff',
+                    background: STATUS_COLORS[s],
+                    padding: '3px 9px',
+                    borderRadius: 20,
+                  }}
+                >
+                  {s} · {statusCounts[s]}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {loadError && (
+          <div style={{ display: 'flex', gap: 8, color: '#b42318', fontSize: 13, marginBottom: 16 }}>
+            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+            Changes aren't saving right now. They'll hold for this session but may not persist, worth refreshing and checking.
+          </div>
+        )}
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5, tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '32%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '12%' }} />
+            </colgroup>
+            <thead>
+              <tr style={{ textAlign: 'left', borderBottom: `2px solid ${COLORS.blue}` }}>
+                {['Funder', 'Amount', 'Deadline', 'Status', 'Link', ''].map((h) => (
+                  <th key={h} style={{ padding: '8px 10px', color: COLORS.blue, fontWeight: 800, fontSize: 12 }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {groupFunders(funders).map(({ name, rows }) => {
+                if (rows.length === 1) {
+                  return <FunderLine key={rows[0].id} f={rows[0]} expandedId={expandedId} setExpandedId={setExpandedId} updateRow={updateRow} deleteRow={deleteRow} />;
+                }
+                const isGroupOpen = !!expandedGroups[name];
+                const total = rows.reduce((sum, r) => sum + parseAmount(r.amount), 0);
+                const looksApprox = rows.some((r) => /[-–]|TBC/i.test(r.amount));
+                const statusSet = [...new Set(rows.map((r) => r.status))];
+                return (
+                  <React.Fragment key={name}>
+                    <tr style={{ borderBottom: isGroupOpen ? 'none' : '1px solid #eef2f5', background: '#fbfdfe' }}>
+                      <td style={{ padding: '8px 10px', fontWeight: 700, color: COLORS.ink, wordBreak: 'break-word' }}>
+                        {name} <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>· {rows.length} asks</span>
+                      </td>
+                      <td style={{ padding: '8px 10px', color: COLORS.ink, wordBreak: 'break-word', fontWeight: 700 }}>
+                        £{total.toLocaleString()}
+                        {looksApprox ? '+' : ''} <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 11.5 }}>combined</span>
+                      </td>
+                      <td style={{ padding: '8px 10px', color: '#5b7183' }}>—</td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                          {statusSet.map((s) => (
+                            <span key={s} style={statusPillStyle(STATUS_COLORS[s])}>
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center', color: '#d7e1e8' }}>—</td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <button
+                          onClick={() => toggleGroup(name)}
+                          title={isGroupOpen ? 'Hide the individual asks' : 'Show the individual asks'}
+                          style={{
+                            border: 'none',
+                            background: 'none',
+                            color: COLORS.blue,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            transform: isGroupOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.15s ease',
+                          }}
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                    {isGroupOpen &&
+                      rows.map((r) => (
+                        <FunderLine key={r.id} f={r} indent expandedId={expandedId} setExpandedId={setExpandedId} updateRow={updateRow} deleteRow={deleteRow} />
+                      ))}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {showAdd ? (
+          <div style={{ marginTop: 20, padding: 16, background: '#f7fafc', borderRadius: 6, border: '1px solid #e2e8ee' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+              <input style={inputStyle} placeholder="Funder name" value={newFunder.name} onChange={(e) => setNewFunder({ ...newFunder, name: e.target.value })} />
+              <input style={inputStyle} placeholder="Amount (e.g. £10,000)" value={newFunder.amount} onChange={(e) => setNewFunder({ ...newFunder, amount: e.target.value })} />
+              <input style={inputStyle} placeholder="Applies to" value={newFunder.appliesTo} onChange={(e) => setNewFunder({ ...newFunder, appliesTo: e.target.value })} />
+              <input style={inputStyle} placeholder="Deadline, if there is one" value={newFunder.deadline} onChange={(e) => setNewFunder({ ...newFunder, deadline: e.target.value })} />
+              <input
+                style={{ ...inputStyle, gridColumn: '1 / -1' }}
+                placeholder="URL (link to further information)"
+                value={newFunder.url}
+                onChange={(e) => setNewFunder({ ...newFunder, url: e.target.value })}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={addRow} style={{ background: COLORS.orange, color: '#fff', border: 'none', borderRadius: 5, padding: '9px 18px', fontWeight: 700, fontSize: 13.5, cursor: 'pointer' }}>
+                Add funder
+              </button>
+              <button onClick={() => setShowAdd(false)} style={{ background: 'none', border: 'none', color: '#5b7183', fontWeight: 600, fontSize: 13.5, cursor: 'pointer' }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowAdd(true)}
+            style={{
+              marginTop: 18,
+              background: 'none',
+              border: `1.5px solid ${COLORS.blue}`,
+              color: COLORS.blue,
+              borderRadius: 5,
+              padding: '9px 18px',
+              fontWeight: 700,
+              fontSize: 13.5,
+              cursor: 'pointer',
+            }}
+          >
+            + Add a funder not on this list
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- App shell with tabs ---------------- */
+
+const VIEW_COPY = {
+  bid: {
+    title: 'Bid Builder',
+    subtitle:
+      "This already knows the business plan, the board and the finances. Just tell it about this specific bid, and it'll draft the application, flagging anything it can't back up rather than making it up.",
+  },
+  pipeline: {
+    title: 'Funding Pipeline',
+    subtitle: 'Every funder in one shared table. Track status, deadlines and notes as things move.',
+  },
+};
+
+function App() {
+  const [view, setView] = useState('bid');
+  const copy = VIEW_COPY[view];
+  return (
+    <div style={{ fontFamily: "'Nunito Sans', system-ui, sans-serif", background: '#eef4f8', minHeight: '100%' }}>
+      <div style={{ position: 'relative', background: COLORS.blue, overflow: 'hidden', padding: '22px 24px 0' }}>
+        <div
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: '55%',
+            bottom: 0,
+            width: '30%',
+            background: COLORS.orange,
+            clipPath: 'polygon(55% 0, 100% 0, 100% 100%, 15% 100%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            height: 8,
+            width: '100%',
+            background: COLORS.yellow,
+          }}
+        />
+        <div style={{ position: 'relative', maxWidth: 900, margin: '0 auto' }}>
+          <div style={{ color: COLORS.yellow, fontWeight: 700, fontSize: 13, letterSpacing: 0.3, marginBottom: 6 }}>
+            Rothes Sports Development Group
+          </div>
+          <h1 style={{ color: '#fff', fontSize: 28, fontWeight: 800, margin: 0, lineHeight: 1.2, maxWidth: 460 }}>{copy.title}</h1>
+          <p style={{ color: '#dfeaf3', fontSize: 14, marginTop: 8, marginBottom: 18, maxWidth: 420, fontWeight: 300 }}>{copy.subtitle}</p>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[
+              { key: 'bid', label: 'Bid builder' },
+              { key: 'pipeline', label: 'Funding pipeline' },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setView(tab.key)}
+                style={{
+                  background: view === tab.key ? '#fff' : 'rgba(255,255,255,0.14)',
+                  color: view === tab.key ? COLORS.blueDark : '#eaf2f7',
+                  border: 'none',
+                  borderRadius: '6px 6px 0 0',
+                  padding: '9px 20px',
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  cursor: 'pointer',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {view === 'bid' ? <BidBuilder /> : <PipelineTracker />}
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
